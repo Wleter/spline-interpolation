@@ -5,8 +5,8 @@ use std::cmp::{max, min};
 
 pub fn fpcurf(
     iopt: i8,
-    x: Vec<f64>,
-    y: Vec<f64>,
+    x: &Vec<f64>,
+    y: &Vec<f64>,
     w: Vec<f64>,
     m: usize,
     xb: f64,

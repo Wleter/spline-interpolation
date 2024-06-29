@@ -42,7 +42,7 @@ mod fprota;
 /// let x = vec![0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
 /// let y = vec![0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0];
 ///
-/// let (t, c, k) = splrep(x, y, None, None, None, None, None, None, None, None, None, None);
+/// let (t, c, k) = splrep(&x, &y, None, None, None, None, None, None, None, None, None, None);
 /// ```
 ///
 /// #### Parameters
@@ -80,8 +80,8 @@ mod fprota;
 ///
 
 pub fn splrep(
-    x: Vec<f64>,
-    y: Vec<f64>,
+    x: &Vec<f64>,
+    y: &Vec<f64>,
     w: Option<Vec<f64>>,
     xb: Option<f64>,
     xe: Option<f64>,
@@ -143,7 +143,7 @@ pub fn splrep(
     let wrk: Vec<f64> = vec![0.0; m * (k + 1) + nest * (7 + 3 * k)];
 
     let (t, n, c, _fp, _ier): (Vec<f64>, usize, Vec<f64>, f64, i8) =
-        curfit::curfit(task, x, y, w, xb, xe, k, s, nest, t, wrk);
+        curfit::curfit(task, &x, &y, w, xb, xe, k, s, nest, t, wrk);
 
     let tck = (t[..n].to_vec(), c[..n].to_vec(), k);
     return tck;
@@ -159,7 +159,7 @@ pub fn splrep(
 /// let x = vec![0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
 /// let y = vec![0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0];
 ///
-/// let (t, c, k) = splrep(x, y, None, None, None, None, None, None, None, None, None, None);
+/// let (t, c, k) = splrep(&x, &y, None, None, None, None, None, None, None, None, None, None);
 ///
 /// // the points where we want to evaluate the spline
 /// let x_evaluate: Vec<f64> = vec![1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0];
@@ -249,7 +249,7 @@ pub fn splev(t: Vec<f64>, c: Vec<f64>, k: usize, x: Vec<f64>, e: usize) -> Vec<f
 /// let x = vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
 /// let y = vec![0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0];
 ///
-/// let (t, c, k) = splrep(x, y, None, None, None, None, None, None, None, None, None, None);
+/// let (t, c, k) = splrep(&x, &y, None, None, None, None, None, None, None, None, None, None);
 ///
 /// // the points where we want to evaluate the spline
 /// let x_evaluate: Vec<f64> = vec![1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0];
@@ -321,7 +321,7 @@ pub fn splev_uniform(t: &Vec<f64>, c: &Vec<f64>, k: usize, x: f64) -> f64 {
 /// let x = vec![0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
 /// let y = vec![0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0];
 ///
-/// let (t, c, k) = splrep(x, y, None, None, None, None, None, None, None, None, None, None);
+/// let (t, c, k) = splrep(&x, &y, None, None, None, None, None, None, None, None, None, None);
 ///
 /// // the points where we want to evaluate the spline
 /// let x_evaluate: Vec<f64> = vec![1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0];
@@ -452,7 +452,7 @@ pub fn splder(t: &Vec<f64>, c: &Vec<f64>, k: usize, x: &Vec<f64>, nu: usize) -> 
 /// let x = vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
 /// let y = vec![0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0];
 ///
-/// let (t, c, k) = splrep(x, y, None, None, None, None, None, None, None, None, None, None);
+/// let (t, c, k) = splrep(&x, &y, None, None, None, None, None, None, None, None, None, None);
 ///
 /// // the points where we want to evaluate the spline
 /// let x_evaluate: Vec<f64> = vec![1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0];
@@ -596,7 +596,7 @@ mod tests {
             0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0, 81.0, 100.0, 121.0,
         ];
         let (t, c, k) = splrep(
-            x, y, None, None, None, None, None, None, None, None, None, None,
+            &x, &y, None, None, None, None, None, None, None, None, None, None,
         );
         let t_ref: Vec<f64> = vec![
             0.5, 0.5, 0.5, 0.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 11.0, 11.0, 11.0, 11.0,
@@ -644,8 +644,8 @@ mod tests {
             0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0, 81.0, 100.0, 121.0,
         ];
         let (t, c, k) = splrep(
-            x,
-            y,
+            &x,
+            &y,
             None,
             None,
             None,
@@ -696,8 +696,8 @@ mod tests {
         ];
         let w: Vec<f64> = vec![0.5, 1.0, 2.0, 1.0, 2.0, 3.0, 1.0, 0.1, 8.0, 0.2, 3.0, 2.0];
         let (t, c, k) = splrep(
-            x,
-            y,
+            &x,
+            &y,
             Some(w),
             None,
             None,
@@ -758,8 +758,8 @@ mod tests {
         ];
         let w: Vec<f64> = vec![0.5, 1.0, 2.0, 1.0, 2.0, 3.0, 1.0, 0.1, 8.0, 0.2, 3.0, 2.0];
         let (t, c, k) = splrep(
-            x,
-            y,
+            &x,
+            &y,
             Some(w),
             None,
             None,
@@ -810,8 +810,8 @@ mod tests {
         ];
         let t: Vec<f64> = vec![2.5, 3.5, 4.5];
         let (t, c, k) = splrep(
-            x,
-            y,
+            &x,
+            &y,
             None,
             None,
             None,
@@ -867,8 +867,8 @@ mod tests {
         let w: Vec<f64> = vec![0.5, 1.0, 2.0, 1.0, 2.0, 3.0, 1.0, 0.1, 8.0, 0.2, 3.0, 2.0];
         let t: Vec<f64> = vec![2.5, 3.5, 4.5];
         let (t, c, k) = splrep(
-            x,
-            y,
+            &x,
+            &y,
             Some(w),
             Some(0.0),
             Some(16.0),
@@ -920,8 +920,8 @@ mod tests {
             0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0, 81.0, 100.0, 121.0,
         ];
         let (t, c, k) = splrep(
-            x,
-            y,
+            &x,
+            &y,
             None,
             None,
             None,
@@ -977,7 +977,7 @@ mod tests {
             0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0, 81.0, 100.0, 121.0,
         ];
         let (t, c, k) = splrep(
-            x, y, None, None, None, None, None, None, None, None, None, None,
+            &x, &y, None, None, None, None, None, None, None, None, None, None,
         );
         let x_ev: Vec<f64> = vec![1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0];
         let y_ev: Vec<f64> = splev(t, c, k, x_ev, 0);
@@ -1001,8 +1001,8 @@ mod tests {
             0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0, 81.0, 100.0, 121.0,
         ];
         let (t, c, k) = splrep(
-            x,
-            y,
+            &x,
+            &y,
             None,
             None,
             None,
@@ -1035,7 +1035,7 @@ mod tests {
             1.0, 4.0, 7.0, 18.0, 22.0, 41.0, 45.0, 63.0, 80.0, 99.0, 119.0,
         ];
         let (t, c, k) = splrep(
-            x, y, None, None, None, None, None, None, None, None, None, None,
+            &x, &y, None, None, None, None, None, None, None, None, None, None,
         );
 
         let x_ev: Vec<f64> = vec![1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 7.5, 10.5, 10.9, 11.0];

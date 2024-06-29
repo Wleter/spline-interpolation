@@ -3,8 +3,8 @@ use crate::fpcurf::fpcurf;
 
 pub fn curfit(
     iopt: i8,
-    x: Vec<f64>,
-    y: Vec<f64>,
+    x: &Vec<f64>,
+    y: &Vec<f64>,
     w: Vec<f64>,
     xb: f64,
     xe: f64,
