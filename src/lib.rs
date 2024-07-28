@@ -17,6 +17,8 @@
 //!
 //! [4] P. Dierckx, "Curve and surface fitting with splines", Monographs on Numerical Analysis, Oxford University Press, 1993.
 
+extern crate core;
+
 use crate::fpbspl::fpbspl;
 use std::cmp::max;
 
@@ -80,8 +82,8 @@ mod fprota;
 ///
 
 pub fn splrep(
-    x: &Vec<f64>,
-    y: &Vec<f64>,
+    x: &[f64],
+    y: &[f64],
     w: Option<Vec<f64>>,
     xb: Option<f64>,
     xe: Option<f64>,
@@ -127,8 +129,8 @@ pub fn splrep(
     }
     let (t, nest): (Vec<f64>, usize) = if task == -1 {
         assert!(t.is_some(), "knots must be given for task = -1");
-        let numknots: usize = t.clone().unwrap().len();
-        let nest: usize = numknots + 2 * k + 2;
+        let num_knots: usize = t.clone().unwrap().len();
+        let nest: usize = num_knots + 2 * k + 2;
         let mut new_t: Vec<f64> = vec![0.0; nest];
         for (i, value) in t.unwrap().iter().enumerate() {
             new_t[k + 1 + i] = *value;
@@ -143,7 +145,7 @@ pub fn splrep(
     let wrk: Vec<f64> = vec![0.0; m * (k + 1) + nest * (7 + 3 * k)];
 
     let (t, n, c, _fp, _ier): (Vec<f64>, usize, Vec<f64>, f64, i8) =
-        curfit::curfit(task, &x, &y, w, xb, xe, k, s, nest, t, wrk);
+        curfit::curfit(task, &x, &y, w.as_slice(), xb, xe, k, s, nest, t.as_slice(), wrk.as_slice());
 
     let tck = (t[..n].to_vec(), c[..n].to_vec(), k);
     return tck;
@@ -156,14 +158,14 @@ pub fn splrep(
 /// Simple example of spline interpolation and evaluation
 /// ```
 /// use rusty_fitpack::{splrep,splev};
-/// let x = vec![0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
-/// let y = vec![0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0];
+/// let x = [0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+/// let y = [0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0];
 ///
 /// let (t, c, k) = splrep(&x, &y, None, None, None, None, None, None, None, None, None, None);
 ///
 /// // the points where we want to evaluate the spline
-/// let x_evaluate: Vec<f64> = vec![1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0];
-/// let y_from_spline: Vec<f64> = splev(t, c, k, x_evaluate, 0);
+/// let x_evaluate  = [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0];
+/// let y_from_spline: Vec<f64> = splev(&t, &c, k, &x_evaluate, 0);
 /// ```
 ///  Arguments:
 ///  ----------
@@ -191,7 +193,7 @@ pub fn splrep(
 ///  [1]  De Boor, C. On calculating with B-splines, J. Approximation Theory, 6 (1972) 50-62.<br>
 ///  [2]  Cox, M.G., The numerical evaluation of B-splines, J. Inst. Maths Applics 10 (1972) 134-149.<br>
 ///  [3]  Dierckx, P. Curve and Surface fitting with splines, Monographs on Numerical Analysis, Oxford University Press, 1993. <br>
-pub fn splev(t: Vec<f64>, c: Vec<f64>, k: usize, x: Vec<f64>, e: usize) -> Vec<f64> {
+pub fn splev(t: &[f64], c: &[f64], k: usize, x: &[f64], e: usize) -> Vec<f64> {
     let mut y: Vec<f64> = vec![0.0; x.len()];
 
     let k1: usize = k + 1;
@@ -269,7 +271,7 @@ pub fn splev(t: Vec<f64>, c: Vec<f64>, k: usize, x: Vec<f64>, e: usize) -> Vec<f
 ///  ----------
 ///    `y`    : the value of s(x) at the point x.<br>
 ///
-pub fn splev_uniform(t: &Vec<f64>, c: &Vec<f64>, k: usize, x: f64) -> f64 {
+pub fn splev_uniform(t: &[f64], c: &[f64], k: usize, x: f64) -> f64 {
     let k1: usize = k + 1;
     let nk1: usize = t.len() - k1;
     let tb: f64 = t[k1 - 1];
@@ -350,7 +352,7 @@ pub fn splev_uniform(t: &Vec<f64>, c: &Vec<f64>, k: usize, x: f64) -> f64 {
 ///  [1]  De Boor, C. On calculating with B-splines, J. Approximation Theory, 6 (1972) 50-62.<br>
 ///  [2]  Cox, M.G., The numerical evaluation of B-splines, J. Inst. Maths Applics 10 (1972) 134-149.<br>
 ///  [3]  Dierckx, P. Curve and Surface fitting with splines, Monographs on Numerical Analysis, Oxford University Press, 1993. <br>
-pub fn splder(t: &Vec<f64>, c: &Vec<f64>, k: usize, x: &Vec<f64>, nu: usize) -> Vec<f64> {
+pub fn splder(t: &[f64], c: &[f64], k: usize, x: &[f64], nu: usize) -> Vec<f64> {
     //  before starting computations a data check is made. if the input data
     //  are invalid control is immediately repassed to the calling program.
     assert!(
@@ -371,7 +373,7 @@ pub fn splder(t: &Vec<f64>, c: &Vec<f64>, k: usize, x: &Vec<f64>, nu: usize) -> 
     let mut ll: usize;
     let mut kk: usize = k;
     // copy the b-spline coefficients
-    let mut wrk: Vec<f64> = c.clone();
+    let mut wrk: Vec<f64> = c.to_vec();
     let m: usize = x.len();
     let mut y: Vec<f64> = Vec::new();
     let mut arg: f64;
@@ -479,7 +481,7 @@ pub fn splder(t: &Vec<f64>, c: &Vec<f64>, k: usize, x: &Vec<f64>, nu: usize) -> 
 ///   $t(k+1) <= x(i) <= x(i+1) <= t(n-k)$ with  $i = 1, 2,...,m-1$<br> <br>
 ///   $ 0 <= \nu <= k$
 ///
-pub fn splder_uniform(t: &Vec<f64>, c: &Vec<f64>, k: usize, x: f64, nu: usize) -> f64 {
+pub fn splder_uniform(t: &[f64], c: &[f64], k: usize, x: f64, nu: usize) -> f64 {
     //  before starting computations a data check is made. if the input data
     //  are invalid control is immediately repassed to the calling program.
     assert!(
@@ -500,7 +502,7 @@ pub fn splder_uniform(t: &Vec<f64>, c: &Vec<f64>, k: usize, x: f64, nu: usize) -
     let mut ll: usize;
     let mut kk: usize = k;
     // copy the b-spline coefficients
-    let mut wrk: Vec<f64> = c.clone();
+    let mut wrk: Vec<f64> = c.to_vec();
     let arg: f64;
     let mut y: f64 = 0.0;
 
@@ -980,7 +982,7 @@ mod tests {
             &x, &y, None, None, None, None, None, None, None, None, None, None,
         );
         let x_ev: Vec<f64> = vec![1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0];
-        let y_ev: Vec<f64> = splev(t, c, k, x_ev, 0);
+        let y_ev: Vec<f64> = splev(t.as_slice(), c.as_slice(), k, x_ev.as_slice(), 0);
 
         let y_ev_ref: Vec<f64> = vec![
             1.0000000000000000,
@@ -1015,7 +1017,7 @@ mod tests {
             None,
         );
         let x_ev: Vec<f64> = vec![1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0];
-        let y_ev: Vec<f64> = splev(t, c, k, x_ev, 0);
+        let y_ev: Vec<f64> = splev(t.as_slice(), c.as_slice(), k, x_ev.as_slice(), 0);
         let y_ev_ref: Vec<f64> = vec![
             0.8949255652788439,
             2.1846839913312492,
