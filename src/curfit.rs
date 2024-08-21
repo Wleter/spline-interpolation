@@ -3,19 +3,19 @@ use crate::fpcurf::fpcurf;
 
 pub fn curfit(
     iopt: i8,
-    x: Vec<f64>,
-    y: Vec<f64>,
-    w: Vec<f64>,
+    x: &[f64],
+    y: &[f64],
+    w: &[f64],
     xb: f64,
     xe: f64,
     k: usize,
     s: f64,
     nest: usize,
-    t: Vec<f64>,
-    wrk: Vec<f64>,
+    t: &[f64],
+    wrk: &[f64],
 ) -> (Vec<f64>, usize, Vec<f64>, f64, i8) {
     let m: usize = x.len();
-    let mut t: Vec<f64> = t;
+    let mut t: Vec<f64> = t.to_vec();
     let n: usize = nest.clone();
     let lwrk: usize = wrk.len();
     assert!(k <= 5, "the degree k must be within 1 and 5");

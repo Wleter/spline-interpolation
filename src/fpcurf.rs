@@ -5,9 +5,9 @@ use std::cmp::{max, min};
 
 pub fn fpcurf(
     iopt: i8,
-    x: Vec<f64>,
-    y: Vec<f64>,
-    w: Vec<f64>,
+    x: &[f64],
+    y: &[f64],
+    w: &[f64],
     m: usize,
     xb: f64,
     xe: f64,
@@ -353,11 +353,11 @@ pub fn fpcurf(
                     break 'outer;
                 }
                 assert_ne!(
-                iter, maxit,
-                "Error. The maximal number of iterations maxit (set to 20 by the program) allowed
+                    iter, maxit,
+                    "Error. The maximal number of iterations maxit (set to 20 by the program) allowed
                  for finding a smoothing spline with fp=s has been reached.
                  Probably cause: s is too small."
-            );
+                );
                 // carry out one more step of the iteration process
                 p2 = p;
                 f2 = fpms;
