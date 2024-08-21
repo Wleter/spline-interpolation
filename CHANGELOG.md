@@ -1,5 +1,11 @@
 # Changelog
 
+## Rusty-Fitpack 0.2.0 (2024-08-21)
+[5da7db2...f8da0fb](https://github.com/mitric-lab/Rusty-FITPACK/compare/5da7db2...f8da0fb)
+
+### Changed
+- Changed the arguments of the functions from vectors to refs of slices
+
 ## Rusty-Fitpack 0.1.2 (2023-11-18)
 [2a1ad8f...HEAD](https://github.com/mitric-lab/Rusty-FITPACK/compare/2a1ad8f...HEAD)
 
