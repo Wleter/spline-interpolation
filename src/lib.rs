@@ -33,6 +33,110 @@ pub mod fpbspl;
 mod fprati;
 mod fprota;
 
+#[derive(Clone, Copy)]
+enum SpacingGrid<'a> {
+    Uniform(f64, f64, usize),
+    NonUniform(&'a [f64]),
+}
+
+#[derive(Clone)]
+pub struct SplineBuilder<'a> {
+    spacing: SpacingGrid<'a>,
+    y: &'a [f64],
+    k: u32,
+    smoothing: Option<f64>,
+}
+
+impl<'a> SplineBuilder<'a> {
+    pub fn new(x: &'a [f64], y: &'a [f64]) -> Self {
+        Self {
+            spacing: SpacingGrid::NonUniform(x),
+            y,
+            k: 3,
+            smoothing: None,
+
+        }
+    }
+
+    pub fn new_uniform(x_start: f64, x_end: f64, x_no: usize, y: &'a [f64]) -> Self {
+        Self {
+            spacing: SpacingGrid::Uniform(x_start, x_end, x_no),
+            y,
+            k: 3,
+            smoothing: None,
+        }
+    }
+
+    pub fn with_degree(mut self, k: u32) -> Self {
+        self.k = k;
+        self
+    }
+
+    pub fn with_smoothing(mut self, smoothing: f64) -> Self {
+        self.smoothing = Some(smoothing);
+        self
+    }
+
+    /// Builds UniformSpline, the uniform spacing for non uniform grid
+    /// is achieved by interpolating to uniform grid with spacing equal
+    /// to first two points
+    pub fn build(self) -> UniformSpline {
+        match self.spacing {
+            SpacingGrid::NonUniform(x) => {
+                let (t, c, k) = splrep(x, self.y, None, None, None, Some(self.k as usize), None, self.smoothing, None, None, None, None);
+
+                let x_start = x[0];
+                let x_end = x.last().unwrap();
+                let x_spacing = x[1] - x[0];
+                let x_no = ((x_end - x_start) / x_spacing).ceil() as usize;
+
+                let x: Vec<f64> = (0..x_no)
+                    .map(|n| x_start + (x_end - x_start) * n as f64 / (x_no - 1) as f64)
+                    .collect();
+
+                let y = splev(&t, &c, k, &x, 0);
+
+                let (t, c, k) = splrep(&x, &y, None, None, None, Some(self.k as usize), None, self.smoothing, None, None, None, None);
+
+                UniformSpline {
+                    t,
+                    c,
+                    k,
+                }
+            },
+            SpacingGrid::Uniform(x_start, x_end, x_no) => {
+                let x: Vec<f64> = (0..x_no)
+                    .map(|n| x_start + (x_end - x_start) * n as f64 / (x_no - 1) as f64)
+                    .collect();
+
+                let (t, c, k) = splrep(&x, self.y, None, None, None, Some(self.k as usize), None, self.smoothing, None, None, None, None);
+
+                UniformSpline {
+                    t,
+                    c,
+                    k,
+                }
+            },
+        }
+    }
+}
+
+pub struct UniformSpline {
+    t: Vec<f64>,
+    c: Vec<f64>,
+    k: usize,
+}
+
+impl UniformSpline {
+    pub fn eval(&self, x: f64) -> f64 {
+        splev_uniform(&self.t, &self.c, self.k, x)
+    }
+
+    pub fn eval_series(&self, x: &[f64]) -> Vec<f64> {
+        splev(&self.t, &self.c, self.k, x, 0)
+    }
+}
+
 /// Find the B-spline representation of a 1-D curve.
 /// Given the set of data points $(x(i), y(i))$ determine a smooth spline
 /// approximation of degree k on the interval $xb <= x <= xe$.
@@ -40,7 +144,7 @@ mod fprota;
 /// #### Example
 /// Simple example of spline interpolation
 /// ```
-/// use rusty_fitpack::splrep;
+/// use spline_interpolation::splrep;
 /// let x = vec![0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
 /// let y = vec![0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0];
 ///
@@ -94,7 +198,6 @@ pub fn splrep(
     full_output: Option<bool>,
     per: Option<bool>,
     quiet: Option<bool>,
-    //) -> (Vec<f64>, Vec<f64>, usize) {
 ) -> (Vec<f64>, Vec<f64>, usize) {
     let m: usize = x.len();
     let s: f64 = match s {
@@ -157,7 +260,7 @@ pub fn splrep(
 /// #### Example
 /// Simple example of spline interpolation and evaluation
 /// ```
-/// use rusty_fitpack::{splrep,splev};
+/// use spline_interpolation::{splrep,splev};
 /// let x = [0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
 /// let y = [0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0];
 ///
@@ -247,7 +350,7 @@ pub fn splev(t: &[f64], c: &[f64], k: usize, x: &[f64], e: usize) -> Vec<f64> {
 /// #### Example
 /// Simple example of spline interpolation and evaluation
 /// ```
-/// use rusty_fitpack::{splrep, splev, splev_uniform};
+/// use spline_interpolation::{splrep, splev, splev_uniform};
 /// let x = vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
 /// let y = vec![0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0];
 ///
@@ -319,7 +422,7 @@ pub fn splev_uniform(t: &[f64], c: &[f64], k: usize, x: f64) -> f64 {
 /// #### Example
 /// Simple example of spline interpolation and evaluation of the first derivative
 /// ```
-/// use rusty_fitpack::{splrep, splder};
+/// use spline_interpolation::{splrep, splder};
 /// let x = vec![0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
 /// let y = vec![0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0];
 ///
@@ -450,7 +553,7 @@ pub fn splder(t: &[f64], c: &[f64], k: usize, x: &[f64], nu: usize) -> Vec<f64> 
 /// #### Example
 /// Simple example of spline interpolation and evaluation of the first derivative
 /// ```
-/// use rusty_fitpack::{splrep, splder_uniform};
+/// use spline_interpolation::{splrep, splder_uniform};
 /// let x = vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
 /// let y = vec![0.0, 1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0, 64.0];
 ///
