@@ -121,6 +121,7 @@ impl<'a> SplineBuilder<'a> {
     }
 }
 
+#[derive(Clone)]
 pub struct UniformSpline {
     t: Vec<f64>,
     c: Vec<f64>,
